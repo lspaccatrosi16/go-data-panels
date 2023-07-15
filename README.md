@@ -124,6 +124,7 @@ func makeOtherTree() *panels.DataTree {
 
     return &tree
 }
+
 ```
 
 ## Credits
