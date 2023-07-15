@@ -132,4 +132,4 @@ This is based off of [tview](https://github.com/rivo/tview/), and uses it under 
 
 ## Licence
 
-This project is availible under the AGPL v3 licence. See [LICENCE](./LICENCE) for details.
+This project is availible under the AGPL-3.0 licence. See [LICENCE](./LICENCE) for details.
