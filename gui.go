@@ -8,7 +8,8 @@ import (
 	"github.com/rivo/tview"
 )
 
-func MakeGui(data GuiData) *GuiContext {
+// Creates a gui based off of the data provided
+func MakeGui(data GuiData) GuiContext {
 	app := tview.NewApplication()
 	pages := tview.NewPages()
 
@@ -20,7 +21,7 @@ func MakeGui(data GuiData) *GuiContext {
 	frame.SetBorder(true)
 
 	comps := make([]tview.Primitive, len(data.DataViews))
-	ctx := GuiContext{
+	ctx := context{
 		app:               app,
 		pages:             pages,
 		components:        &comps,
@@ -35,11 +36,11 @@ func MakeGui(data GuiData) *GuiContext {
 	for idx, item := range data.MenuItems {
 		pName := fmt.Sprintf("page__%d", idx)
 		screens = append(screens, listItem{
-			Name:     item.Name,
-			PageName: pName,
-			Details:  item.Details,
-			Char:     item.Shortcut,
-			Selected: func() { ctx.switchPage(pName) },
+			name:     item.Name,
+			pageName: pName,
+			details:  item.Details,
+			char:     item.Shortcut,
+			selected: func() { ctx.switchPage(pName) },
 		})
 	}
 
@@ -78,7 +79,7 @@ func MakeGui(data GuiData) *GuiContext {
 	return &ctx
 }
 
-func makeModal(ctx *GuiContext) *tview.Modal {
+func makeModal(ctx *context) *tview.Modal {
 	modal := tview.NewModal()
 
 	modal.SetText("Pick a new view to open")
@@ -86,7 +87,7 @@ func makeModal(ctx *GuiContext) *tview.Modal {
 	buttons := []string{}
 
 	for _, item := range *ctx.screens {
-		buttons = append(buttons, item.Name)
+		buttons = append(buttons, item.name)
 	}
 
 	buttons = append(buttons, "All")
@@ -104,7 +105,7 @@ func makeBaseList(items []listItem) *tview.Flex {
 	list := tview.NewList()
 
 	for _, item := range items {
-		list.AddItem(item.Name, item.Details, item.Char, item.Selected)
+		list.AddItem(item.name, item.details, item.char, item.selected)
 	}
 
 	shortcutText := []string{

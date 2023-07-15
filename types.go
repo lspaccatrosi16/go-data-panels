@@ -5,11 +5,13 @@ import (
 	"github.com/rivo/tview"
 )
 
+// A part of the data tree. Each tree can contain as many children as desired.
 type TreeNode struct {
 	name     string
 	children []*TreeNode
 }
 
+// Add a child of a node to the data tree
 func (t *TreeNode) AddChild(text string) *TreeNode {
 	child := &TreeNode{name: text}
 	t.children = append(t.children, child)
@@ -29,10 +31,12 @@ func (t *TreeNode) generateNode() *tview.TreeNode {
 	return node
 }
 
+// The overall data tree. Has one (implicit) root child and many sub children
 type DataTree struct {
 	root TreeNode
 }
 
+// Add a child of the root node
 func (t *DataTree) AddChild(text string) *TreeNode {
 	child := &TreeNode{name: text}
 	t.root.children = append(t.root.children, child)
@@ -74,6 +78,7 @@ func (t *DataTree) generateTree() *tview.TreeView {
 	return tree
 }
 
+// Make a new data tree. The name is the name of the root node
 func NewDataTree(name string) *DataTree {
 	rootNode := TreeNode{name: name}
 
@@ -82,14 +87,22 @@ func NewDataTree(name string) *DataTree {
 }
 
 type listItem struct {
-	Name     string
-	PageName string
-	Details  string
-	Char     rune
-	Selected func()
+	name     string
+	pageName string
+	details  string
+	char     rune
+	selected func()
 }
 
-type GuiContext struct {
+// The Gui container and handler
+type GuiContext interface {
+	// Runs the Gui when it has been createed
+	Run()
+	// Stops the Gui (causes Run to return)
+	Stop()
+}
+
+type context struct {
 	app               *tview.Application
 	pages             *tview.Pages
 	screens           *[]listItem
@@ -101,11 +114,11 @@ type GuiContext struct {
 	dataTrees         []*DataTree
 }
 
-func (c *GuiContext) switchPage(name string) {
+func (c *context) switchPage(name string) {
 	pageIdx := -1
 
 	for i, sc := range *c.screens {
-		if name == sc.PageName {
+		if name == sc.pageName {
 			pageIdx = i
 			break
 		}
@@ -134,7 +147,7 @@ func (c *GuiContext) switchPage(name string) {
 	c.pages.SwitchToPage(name)
 }
 
-func (c *GuiContext) addView(idx int) {
+func (c *context) addView(idx int) {
 	activeComps := []*tview.Primitive{}
 
 	if idx == -1 {
@@ -154,10 +167,9 @@ func (c *GuiContext) addView(idx int) {
 
 	c.paintView()
 	c.refreshPage()
-
 }
 
-func (c *GuiContext) popView() {
+func (c *context) popView() {
 	n := len(c.currentComponents)
 
 	if n > 0 {
@@ -169,33 +181,33 @@ func (c *GuiContext) popView() {
 	c.refreshPage()
 }
 
-func (c *GuiContext) refreshPage() {
+func (c *context) refreshPage() {
 
 	if len(c.currentComponents) == 0 {
 		c.pages.SwitchToPage("Menu")
 	} else if c.currentPage == "" {
-		c.pages.SwitchToPage((*c.screens)[0].PageName)
+		c.pages.SwitchToPage((*c.screens)[0].pageName)
 		c.currentPage = "Laps"
 	} else {
 		c.pages.SwitchToPage(c.currentPage)
 	}
 }
 
-func (c *GuiContext) paintView() {
+func (c *context) paintView() {
 	name := c.currentPage
 	c.pages.RemovePage(name)
 	page := c.makePage()
 	c.pages.AddPage(name, page, true, false)
 }
 
-func (c *GuiContext) makePage() *tview.Grid {
+func (c *context) makePage() *tview.Grid {
 	pages := c.currentComponents
 
 	if len(pages) > 4 {
 		pages = pages[:4]
 	}
 
-	list := append(*c.screens, listItem{Name: "Menu", Details: "Go back to the menu", Char: 'b', Selected: c.back})
+	list := append(*c.screens, listItem{name: "Menu", details: "Go back to the menu", char: 'b', selected: c.back})
 
 	menuInt := makeBaseList(list)
 	menu := tview.NewFrame(menuInt)
@@ -279,14 +291,15 @@ func (c *GuiContext) makePage() *tview.Grid {
 	return grid
 }
 
-func (c *GuiContext) paintWidgets() {
+func (c *context) paintWidgets() {
 	for idx, tree := range c.dataTrees {
 		t := tree.generateTree()
 		(*c.components)[idx] = t
 	}
 }
 
-func (c *GuiContext) Run() {
+// Run the
+func (c *context) Run() {
 
 	c.paintWidgets()
 
@@ -295,19 +308,33 @@ func (c *GuiContext) Run() {
 	}
 }
 
-func (c *GuiContext) Stop() {
+func (c *context) Stop() {
 	c.app.Stop()
 }
 
+// A menu item
 type MenuItem struct {
-	Name     string
-	Details  string
+	// The name of the item
+	Name string
+
+	// Details attached to the item
+	Details string
+
+	// A shortcut key that will be active when the menu is in focus
 	Shortcut rune
 }
 
+// Data that the gui needs
 type GuiData struct {
-	TopFrameText    string
+	// Text that can be displayed above the widgets at all times
+	TopFrameText string
+
+	// Text that can be displayed below the widgets at all times
 	BottomFrameText string
-	MenuItems       []*MenuItem
-	DataViews       []*DataTree
+
+	// A list of menu items
+	MenuItems []*MenuItem
+
+	// A list of data views
+	DataViews []*DataTree
 }
