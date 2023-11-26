@@ -48,10 +48,12 @@ type DataTree struct {
 
 // Add a child of the root node
 func (t *DataTree) AddChild(text string) *TreeNode {
-	child := &TreeNode{name: text}
-	t.root.children = append(t.root.children, child)
+	return t.root.AddChild(text)
+}
 
-	return child
+// Add a sub-tree to the root node
+func (t *DataTree) InheritTree(subTree *DataTree) *TreeNode {
+	return t.root.InheritTree(subTree)
 }
 
 func (t *DataTree) generateTree() *tview.TreeView {
