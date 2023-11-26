@@ -19,6 +19,16 @@ func (t *TreeNode) AddChild(text string) *TreeNode {
 	return child
 }
 
+// Add a sub-tree to the node of the data tree
+func (t *TreeNode) InheritTree(subTree *DataTree) *TreeNode {
+	child := &TreeNode{name: subTree.root.name}
+	child.children = subTree.root.children
+
+	t.children = append(t.children, child)
+
+	return child
+}
+
 func (t *TreeNode) generateNode() *tview.TreeNode {
 	node := tview.NewTreeNode(t.name)
 
