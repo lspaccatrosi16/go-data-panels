@@ -109,7 +109,7 @@ type listItem struct {
 // The Gui container and handler
 type GuiContext interface {
 	// Runs the Gui when it has been createed
-	Run()
+	Run() error
 	// Stops the Gui (causes Run to return)
 	Stop()
 }
@@ -311,13 +311,15 @@ func (c *context) paintWidgets() {
 }
 
 // Run the
-func (c *context) Run() {
+func (c *context) Run() error {
 
 	c.paintWidgets()
 
 	if err := c.app.SetRoot(c.frame, true).SetFocus(c.pages).Run(); err != nil {
-		panic(err)
+		return err
 	}
+
+	return nil
 }
 
 func (c *context) Stop() {
